@@ -1,0 +1,14 @@
+version: '3.3'
+services:
+  mysql:
+    image: mysql:5.7
+    container_name: container-mysql
+    environment:
+    - MYSQL_ROOT_PASSWORD=Suporte99
+    - MYSQL_DATABASE=db_eventos
+    - MYSQL_USER=suporte
+    - MYSQL_PASSWORD=Suporte99
+    ports:
+      - "3307:3306"
+    volumes:
+      - ./data_mysql:/var/lib/mysql

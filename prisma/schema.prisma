@@ -1,0 +1,166 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+//model Permissao {
+//  id        Int    @id @default(autoincrement())
+//  descricao String
+//}
+
+model Usuario {
+  id                    String      @id @default(uuid())
+  createdAt             DateTime   @default(now())
+  updatedAt             DateTime   @updatedAt
+  nome                  String
+  email                 String     @unique
+  parcial               Boolean    @default(false)
+  senha                 String?
+  cpf                   String?
+  imagem                String?
+  ativo                 Boolean    @default(true)
+  eventos               Evento[] // Criar um evento
+  organizadores         Organizadores[] // Ser organizador de um evento 
+  inscricoesEventos     InscricaoEvento[] // Se inscrever em um evento
+  inscricoesAtividades  InscricaoAtividade[] // Se inscrever em uma atividade
+  ministrantes          Ministrantes[] // Ser ministrante de uma atividade
+  publicacoes           Publicacao[] // Publicar algo
+}
+
+model TipoEvento {
+  id                    String      @id @default(uuid())
+  createdAt             DateTime   @default(now())
+  updatedAt             DateTime   @updatedAt
+  descricao             String
+  eventos               Evento[]
+}
+
+model Evento {
+  id                    String      @id @default(uuid())
+  createdAt             DateTime   @default(now())
+  updatedAt             DateTime   @updatedAt
+  titulo                String
+  descricao             String  
+  status                STATUS
+  local                 String // autocomplete com dados de outros eventos
+  logradouro            String
+  logotipo              String
+  dataInicio            DateTime
+  dataTermino           DateTime
+  tipoEvento            TipoEvento @relation(fields: [tipoEventoId], references: [id])
+  tipoEventoId          String
+  usuario               Usuario @relation(fields: [usuarioId], references: [id])
+  usuarioId             String
+  organizadores         Organizadores[]
+  atividades            Atividade[]
+  inscricoesEventos     InscricaoEvento[]
+}
+
+model Organizadores {
+  id                    String      @id @default(uuid())
+  createdAt             DateTime   @default(now())
+  updatedAt             DateTime   @updatedAt
+  funcao                String
+  evento                Evento @relation(fields: [eventoId], references: [id])
+  eventoId              String
+  usuario               Usuario @relation(fields: [usuarioId], references: [id])
+  usuarioId             String
+}
+
+model InscricaoEvento {
+  id                    String      @id @default(uuid())
+  createdAt             DateTime   @default(now())
+  updatedAt             DateTime   @updatedAt  
+  inscrito              Usuario @relation(fields: [inscritoId], references: [id])
+  inscritoId            String
+  evento                Evento @relation(fields: [eventoId], references: [id])
+  eventoId              String
+}
+
+model TipoAtividade {
+  id                    String      @id @default(uuid())
+  createdAt             DateTime   @default(now())
+  updatedAt             DateTime   @updatedAt
+  descricao             String
+  atividades            Atividade[]
+}
+
+// atividade pode ter mais de um horário/dia
+model Atividade {
+  id                    String      @id @default(uuid())
+  createdAt             DateTime    @default(now())
+  updatedAt             DateTime    @updatedAt
+  nome                  String
+  local                 String
+  dataInicio            DateTime
+  dataTermino           DateTime
+  cargaHoraria          Int
+  vagas                 Int //0 -> ilimitado
+  tipoAtividade         TipoAtividade @relation(fields: [tipoAtividadeId], references: [id])
+  tipoAtividadeId       String
+  evento                Evento    @relation(fields: [eventoId], references: [id])
+  eventoId              String
+  ministrantes          Ministrantes[]
+  certificados          Certificado[]
+  inscricoesAtividades  InscricaoAtividade[]
+  publicacoes           Publicacao[]
+}
+
+model Ministrantes {
+  id                    String      @id @default(uuid())
+  createdAt             DateTime   @default(now())
+  updatedAt             DateTime   @updatedAt
+  atividade             Atividade @relation(fields: [atividadeId], references: [id])
+  atividadeId           String
+  usuario               Usuario @relation(fields: [usuarioId], references: [id])
+  usuarioId             String
+}
+
+// inscrição + [frequência => atividade por ter mais de um horário/dia]
+// criar um model para Frequência
+model InscricaoAtividade {
+  id                    String      @id @default(uuid())
+  createdAt             DateTime   @default(now())
+  updatedAt             DateTime   @updatedAt  
+  inscrito              Usuario @relation(fields: [inscritoId], references: [id])
+  inscritoId            String
+  atividade             Atividade @relation(fields: [atividadeId], references: [id])
+  atividadeId           String
+}
+
+// Gerar um código único para cada certificado + código de verificação
+// Certificado do evento e da atividade
+model Certificado {
+  id                    String      @id @default(uuid())
+  createdAt             DateTime   @default(now())
+  updatedAt             DateTime   @updatedAt
+  atividade             Atividade @relation(fields: [atividadeId], references: [id])
+  atividadeId           String
+}
+
+// Listar as rotas e o que fazem
+// GET /usuarios listar os usuários de forma paginada
+
+enum STATUS {
+  Em_andamento
+  Cancelado
+  Finalizado
+}
+
+// Renato:
+// Listar rotas e funcionalidades
+
+// Priscila:
+// Publicação (status)
+// Tipo de publicação
+// Histórico da submissão
+// Histórico da avaliação
+// Cronograma (com histórico de alterações)
+// Tema (por evento)
